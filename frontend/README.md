@@ -22,10 +22,11 @@ npm run dev
 
 O frontend estará disponível em `http://localhost:5173` (ou outra porta que o Vite indicar)
 
-### 3. Certifique-se de que o backend está rodando
-O frontend se comunica com o backend em `http://localhost:3000`
+### 3. Backend configurado
+O frontend está configurado para se comunicar com o backend hospedado no Render:
+- **URL do Backend**: `https://hotelmiranda.onrender.com`
 
-Se o backend estiver em outra porta, edite a constante `API_BASE_URL` no arquivo `src/main.js`
+Para desenvolvimento local, edite a constante `API_BASE_URL` no arquivo `src/main.js`
 
 ## 📱 Funcionalidades
 
@@ -60,8 +61,10 @@ frontend/
 
 Edite `src/main.js` e altere a constante:
 ```javascript
-const API_BASE_URL = 'http://localhost:3000/api/auth';
+const API_BASE_URL = 'https://hotelmiranda.onrender.com/api/auth';
 ```
+
+**URL atual configurada**: `https://hotelmiranda.onrender.com/api/auth`
 
 ## ✨ Características
 

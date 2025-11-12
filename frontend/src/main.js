@@ -1,7 +1,7 @@
 import './style.css';
 
 // Configuração da API
-const API_BASE_URL = 'http://localhost:3000/api/auth';
+const API_BASE_URL = 'https://hotelmiranda.onrender.com/api/auth';
 
 // Estado da aplicação
 let currentView = 'login'; // 'login' ou 'register'
