@@ -1,208 +1,142 @@
-# API CRUD de Usuários
+# Backend - Sistema de Hotel
 
-API completa para cadastro e gerenciamento de usuários com autenticação JWT e integração com Supabase.
+Backend desenvolvido com Express.js e Supabase para gerenciamento de autenticação de usuários.
 
-## 🚀 Funcionalidades
+## Configuração
 
-- ✅ Cadastro de usuários
-- ✅ Login com JWT
-- ✅ Perfil do usuário
-- ✅ Atualização de dados
-- ✅ Alteração de senha
-- ✅ Desativação de conta
-- ✅ Listagem de usuários
-- ✅ Validação de dados
-- ✅ Hash de senhas com bcrypt
-- ✅ Middleware de autenticação
+### 1. Instalar dependências
 
-## 📋 Pré-requisitos
-
-- Node.js 18+
-- Conta no Supabase
-- Banco de dados configurado com a tabela `usuario`
-
-## 🛠️ Instalação
-
-1. **Instalar dependências:**
 ```bash
 npm install
 ```
 
-2. **Configurar variáveis de ambiente:**
-```bash
-# Copie o arquivo de exemplo
-cp env.example .env
+### 2. Configurar variáveis de ambiente
 
-# Edite o arquivo .env com suas configurações
-```
-
-3. **Configurar Supabase:**
-- Execute o SQL do arquivo `schema_usuario.sql` no SQL Editor do Supabase
-- Configure as variáveis no arquivo `.env`
-
-## 🔧 Configuração do .env
+Crie um arquivo `.env` na raiz do diretório `backend` com as seguintes variáveis:
 
 ```env
-# Supabase
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_ANON_KEY=sua_chave_anonima
-SUPABASE_SERVICE_ROLE_KEY=sua_chave_de_servico
-
-# API
-NODE_ENV=development
+SUPABASE_URL=sua_url_do_supabase
+SUPABASE_ANON_KEY=sua_chave_anon_do_supabase
+SUPABASE_SERVICE_ROLE_KEY=sua_chave_service_role_do_supabase
 PORT=3000
-
-# JWT
-JWT_SECRET=sua_chave_secreta_jwt
-JWT_REFRESH_SECRET=sua_chave_refresh_jwt
+NODE_ENV=development
 ```
 
-## 🚀 Executar
+### 3. Configurar tabela no Supabase
 
+No Supabase, você precisa criar a tabela `usuarios` executando o script SQL do arquivo `supabase-schema.sql` ou usando a seguinte estrutura:
+
+```sql
+CREATE TABLE public.usuarios (
+  id serial PRIMARY KEY,
+  nome varchar(255) NOT NULL,
+  endereco varchar(512),
+  email varchar(255) NOT NULL UNIQUE,
+  senha varchar(255) NOT NULL,
+  cpf bpchar(11),
+  telefone varchar(50),
+  created_at timestamp with time zone DEFAULT now(),
+  deleted_by varchar(255),
+  deleted_at timestamp with time zone,
+  active boolean DEFAULT true
+);
+```
+
+## Executar o servidor
+
+### Modo desenvolvimento (com watch)
 ```bash
-# Desenvolvimento
 npm run dev
+```
 
-# Produção
+### Modo produção
+```bash
 npm start
 ```
 
-## 📚 Endpoints da API
+O servidor estará rodando em `http://localhost:3000`
 
-### 🔐 Autenticação
+## Endpoints
 
-#### POST `/api/auth/register`
-Cadastrar novo usuário
-
-**Body:**
-```json
-{
-  "nome": "João",
-  "sobrenome": "Silva",
-  "email": "joao@exemplo.com",
-  "senha": "123456",
-  "telefone": "+5511999999999",
-  "data_nascimento": "1990-01-15",
-  "bio": "Desenvolvedor"
-}
-```
-
-#### POST `/api/auth/login`
-Login do usuário
+### POST /api/auth/register
+Registra um novo usuário.
 
 **Body:**
 ```json
 {
-  "email": "joao@exemplo.com",
-  "senha": "123456"
+  "nome": "João Silva",
+  "endereco": "Rua Exemplo, 123",
+  "email": "joao@example.com",
+  "senha": "senha123",
+  "cpf": "123.456.789-00",
+  "telefone": "(11) 99999-9999"
 }
 ```
 
-#### POST `/api/auth/refresh`
-Renovar token
+**Resposta de sucesso (201):**
+```json
+{
+  "success": true,
+  "message": "Usuário registrado com sucesso",
+  "user": {
+    "id": 1,
+    "nome": "João Silva",
+    "endereco": "Rua Exemplo, 123",
+    "email": "joao@example.com",
+    "cpf": "12345678900",
+    "telefone": "(11) 99999-9999",
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "active": true
+  }
+}
+```
+
+**Nota:** O CPF é armazenado sem pontos e traços (apenas números).
+
+### POST /api/auth/login
+Realiza login do usuário.
 
 **Body:**
 ```json
 {
-  "refreshToken": "seu_refresh_token"
+  "email": "joao@example.com",
+  "senha": "senha123"
 }
 ```
 
-### 👤 Usuários
-
-#### GET `/api/users/profile`
-Obter perfil do usuário logado
-**Headers:** `Authorization: Bearer <token>`
-
-#### PUT `/api/users/profile`
-Atualizar perfil do usuário logado
-**Headers:** `Authorization: Bearer <token>`
-
-#### PUT `/api/users/change-password`
-Alterar senha
-**Headers:** `Authorization: Bearer <token>`
-**Body:**
+**Resposta de sucesso (200):**
 ```json
 {
-  "senha_atual": "123456",
-  "nova_senha": "nova123456"
+  "success": true,
+  "message": "Login realizado com sucesso",
+  "user": {
+    "id": 1,
+    "nome": "João Silva",
+    "endereco": "Rua Exemplo, 123",
+    "email": "joao@example.com",
+    "cpf": "12345678900",
+    "telefone": "(11) 99999-9999",
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "active": true
+  }
 }
 ```
 
-#### DELETE `/api/users/profile`
-Desativar conta
-**Headers:** `Authorization: Bearer <token>`
+**Nota:** A senha é verificada usando hash bcrypt e nunca é retornada na resposta.
 
-#### GET `/api/users`
-Listar usuários (com paginação)
-**Headers:** `Authorization: Bearer <token>`
-**Query params:** `?page=1&limit=10&search=joao`
+### GET /health
+Verifica se o servidor está funcionando.
 
-## 🔒 Segurança
-
-- Senhas são hasheadas com bcrypt
-- Tokens JWT com expiração
-- Validação de dados com Joi
-- Middleware de autenticação
-- Row Level Security no Supabase
-
-## 📝 Exemplos de Uso
-
-### Cadastrar usuário
-```bash
-curl -X POST http://localhost:3000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "João",
-    "email": "joao@exemplo.com",
-    "senha": "123456"
-  }'
-```
-
-### Login
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "joao@exemplo.com",
-    "senha": "123456"
-  }'
-```
-
-### Obter perfil
-```bash
-curl -X GET http://localhost:3000/api/users/profile \
-  -H "Authorization: Bearer SEU_TOKEN_AQUI"
-```
-
-## 🏗️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 backend/
-├── middleware/
-│   ├── auth.js          # Middleware de autenticação
-│   └── validation.js     # Validação de dados
+├── config/
+│   └── supabase.js      # Configuração do cliente Supabase
 ├── routes/
-│   ├── authRoutes.js    # Rotas de autenticação
-│   └── userRoutes.js    # Rotas CRUD de usuários
-├── utils/
-│   ├── password.js      # Utilitários de senha
-│   └── jwt.js           # Utilitários JWT
-├── server.js            # Servidor principal
-├── package.json         # Dependências
-└── schema_usuario.sql   # Schema do banco
+│   └── auth.js          # Rotas de autenticação
+├── server.js            # Servidor Express principal
+├── package.json         # Dependências do projeto
+└── README.md           # Este arquivo
 ```
 
-## 🐛 Troubleshooting
-
-### Erro de conexão com Supabase
-- Verifique se as variáveis de ambiente estão corretas
-- Confirme se a tabela `usuario` foi criada
-
-### Erro de autenticação
-- Verifique se o JWT_SECRET está configurado
-- Confirme se o token está sendo enviado corretamente
-
-### Erro de validação
-- Verifique se os dados estão no formato correto
-- Confirme se todos os campos obrigatórios estão preenchidos

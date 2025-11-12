@@ -1,68 +1,70 @@
-// Servidor principal da API
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { createClient } from '@supabase/supabase-js';
+import authRoutes from './routes/auth.js';
 
-// Importar rotas
-import userRoutes from './routes/userRoutes.js';
-import authRoutes from './routes/authRoutes.js';
-
-// Configurar dotenv
+// Carregar variáveis de ambiente
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configurar Supabase
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-// Disponibilizar supabase para as rotas
-app.locals.supabase = supabase;
+// Middleware de logging para armazenar requisições
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.path}`, {
+    body: req.body,
+    query: req.query,
+    params: req.params
+  });
+  next();
+});
 
 // Rotas
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 
-// Rota de teste
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'API funcionando corretamente',
+// Rota de health check
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Servidor está funcionando',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Rota raiz
+app.get('/', (req, res) => {
+  res.json({
+    message: 'API do Sistema de Hotel',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      register: 'POST /api/auth/register',
+      login: 'POST /api/auth/login'
+    }
   });
 });
 
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
-  console.error('Erro na API:', err);
+  console.error('Erro não tratado:', err);
   res.status(500).json({
     success: false,
     message: 'Erro interno do servidor',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno'
-  });
-});
-
-// Rota 404
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Rota não encontrada'
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📝 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔐 Registro: POST http://localhost:${PORT}/api/auth/register`);
+  console.log(`🔑 Login: POST http://localhost:${PORT}/api/auth/login`);
 });
 
-export default app;
